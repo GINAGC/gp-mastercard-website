@@ -1,4 +1,5 @@
 # gp-mastercard-website
+(mastercard.co.uk.glasswall-icap.com)
 
 Steps:
 
@@ -32,25 +33,44 @@ Steps:
     kubectl get nodes
 
 7.
+```
     git clone https://github.com/k8-proxy/gp-mastercard-website
+    
     cd gp-mastercard-website/
+    
+    git checkout master_card_proxy 
+    
+    git pull
+    
     git clone https://github.com/k8-proxy/s-k8-proxy-rebuild
+    
     git clone https://github.com/k8-proxy/k8-reverse-proxy
     
-    cp values.yaml s-k8-proxy-rebuild/stable_src/chart/
+    cd s-k8-proxy-rebuild/
     
+    git checkout ssl_certs
+    
+    git pull
+    
+    cd ..
+  
+    cp values.yaml s-k8-proxy-rebuild/stable-src/chart/values.yaml 
+    
+``` 
+     
 10.Push images to dockerhub
 
     docker login
-    
-    docker build k8-reverse-proxy/stable_src/nginx -t <docker registry>/reverse-proxy-nginx:0.0.1
-    docker push <docker registry>/reverse-proxy-nginx:0.0.1
-    
-    docker build k8-reverse-proxy/stable_src/squid -t <docker registry>/reverse-proxy-squid:0.0.1
-    docker push <docker registry>/reverse-proxy-squid:0.0.1
-    
+
+    cd k8-reverse-proxy/stable-src
+
+    docker build nginx -t <docker registry>/reverse-proxy-nginx:0.0.1
+    docker build squid -t <docker registry>/reverse-proxy-squid:0.0.1
     wget -O c-icap/Glasswall-Rebuild-SDK-Evaluation/Linux/Library/libglasswall.classic.so https://github.com/filetrust/Glasswall-Rebuild-SDK-Evaluation/releases/download/1.117/libglasswall.classic.so # Get latest evaluation build of GW Rebuild engine
-    docker build k8-reverse-proxy/stable_src/c-icap -t <docker registry>/reverse-proxy-c-icap:0.0.1
+    docker build c-icap -t <docker registry>/reverse-proxy-c-icap:0.0.1
+    
+    docker push <docker registry>/reverse-proxy-nginx:0.0.1
+    docker push <docker registry>/reverse-proxy-squid:0.0.1 
     docker push <docker registry>/reverse-proxy-c-icap:0.0.1
     
 11.Create certificate
@@ -69,7 +89,9 @@ Steps:
     key=cat /etc/letsencrypt/live/www.mastercard.co.uk.glasswall-icap.com/privkey.pem | base64
     
 12.Deploy proxy
+```
     cd s-k8-proxy-rebuild/stable_src/
+    
     export KUBECONFIG=kubeconfig
     
     Replace crt and key with generated key above
@@ -84,6 +106,7 @@ Steps:
         --set ingress.tls.crt= crt \
         --set ingress.tls.key= key \
         reverse-proxy chart/
-    
+
+ ```   
 
 
